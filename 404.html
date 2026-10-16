@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Planning</title>
+<meta name="apple-mobile-web-app-title" content="Planning">
+<link rel="apple-touch-icon" href="/planning/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/planning/icone-192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/planning/favicon.png">
+<meta name="theme-color" content="#1C5472">
+<style>
+  :root { --petrole: #1C5472; --nuit: #0F3346; --rose: #EB5470; --rose-profond: #C7375A;
+          --glacier: #EAF1F5; --anthracite: #2A2F35; --ardoise: #5F6B75; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: var(--glacier); color: var(--anthracite);
+         font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+  header { background: linear-gradient(var(--petrole), var(--nuit)); color: #fff; text-align: center;
+           padding: calc(28px + env(safe-area-inset-top)) 16px 26px; }
+  header img { width: 96px; height: 96px; border-radius: 22px; box-shadow: 0 6px 18px rgba(0,0,0,.25); }
+  header h1 { font-size: 21px; margin: 14px 0 0; font-weight: 700; }
+  header p { margin: 4px 0 0; opacity: .85; font-size: 14px; }
+  main { max-width: 480px; margin: 0 auto; padding: 20px 16px 40px; }
+  .card { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  .card h2 { margin: 0 0 10px; font-size: 13px; letter-spacing: .6px; text-transform: uppercase; color: var(--rose-profond); }
+  ol { margin: 0; padding-left: 22px; } li { margin: 6px 0; }
+  .k { font-weight: 700; color: var(--petrole); }
+  .btn { display: block; text-align: center; background: var(--petrole); color: #fff; text-decoration: none;
+         font-weight: 700; padding: 13px; border-radius: 12px; }
+  .note { font-size: 13px; color: var(--ardoise); text-align: center; margin-top: 12px; }
+  .hide { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <img src="/planning/apple-touch-icon.png" alt="">
+  <h1>Planning Cardioréliance</h1>
+  <p id="sous-titre">Votre planning personnel et celui de l'équipe</p>
+</header>
+<main>
+  <div id="erreur" class="card hide">
+    <h2>Lien incomplet</h2>
+    Ce lien ne contient pas votre code personnel. Demandez votre lien à Julien Rischard.
+  </div>
+  <div id="contenu" class="hide">
+    <div class="card" id="ios">
+      <h2>Sur iPhone</h2>
+      <ol>
+        <li>Ouvrez cette page dans <span class="k">Safari</span>.</li>
+        <li>Touchez le bouton <span class="k">Partager</span> (carré avec une flèche vers le haut).</li>
+        <li>Choisissez <span class="k">Sur l'écran d'accueil</span>, puis <span class="k">Ajouter</span>.</li>
+      </ol>
+    </div>
+    <div class="card" id="android">
+      <h2>Sur Android</h2>
+      <ol>
+        <li>Ouvrez cette page dans <span class="k">Chrome</span>.</li>
+        <li>Touchez le menu <span class="k">⋮</span> en haut à droite.</li>
+        <li>Choisissez <span class="k">Ajouter à l'écran d'accueil</span>.</li>
+      </ol>
+    </div>
+    <a id="ouvrir" class="btn" href="#">Ouvrir le planning</a>
+    <p class="note">L'icône « Planning » ouvrira ensuite directement votre planning.</p>
+  </div>
+</main>
+<script>
+  // Adresse de l'application Apps Script (Déployer > Gérer les déploiements > URL de l'application Web)
+  var APPLI = 'https://script.google.com/macros/s/AKfycbw2nq2znmAQsKciWchJUYHgW4VBS68ua1g9drwuPCO47AKVAGl4gEzWlLGtovdFl4F_/exec';
+
+  // Le code personnel est normalement après le « # » (jamais envoyé au serveur). Lecture tolérante :
+  // l'adresse peut avoir été réencodée (« %23 » au lieu de « # ») ou porter les paramètres après « ? ».
+  function lireParams() {
+    var s = location.href; try { s = decodeURIComponent(s); } catch (e) {}
+    var u = s.match(/[#?&]u=([A-Za-z]{2,4})(?=&|$)/), k = s.match(/[#?&]k=([A-Za-z0-9]+)/), g = /[#?&]go=1/.test(s);
+    return { u: u ? u[1].toUpperCase() : '', k: k ? k[1] : '', go: g ? '1' : '' };
+  }
+  var p = lireParams();
+  var cible = (p.u && p.k) ? APPLI + '?u=' + encodeURIComponent(p.u) + '&k=' + encodeURIComponent(p.k) : '';
+
+  if (!cible) {
+    document.getElementById('erreur').classList.remove('hide');
+  } else if (p.go === '1' || navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches)) {
+    // Ouverture depuis l'écran d'accueil : bascule directe sur le planning
+    location.replace(cible);
+  } else {
+    // Première ouverture : consignes d'installation. On marque l'adresse pour que le raccourci
+    // enregistré ouvre ensuite directement le planning.
+    document.getElementById('contenu').classList.remove('hide');
+    document.getElementById('ouvrir').href = cible;
+    var ios = /iPhone|iPad|iPod/.test(navigator.userAgent), and = /Android/.test(navigator.userAgent);
+    if (ios) document.getElementById('android').classList.add('hide');
+    if (and) document.getElementById('ios').classList.add('hide');
+    try { history.replaceState(null, '', '/planning/#u=' + encodeURIComponent(p.u) + '&k=' + encodeURIComponent(p.k) + '&go=1'); } catch (e) {}
+  }
+</script>
+</body>
+</html>
