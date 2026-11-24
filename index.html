@@ -42,7 +42,8 @@
 <main>
   <div id="erreur" class="card hide">
     <h2>Lien incomplet</h2>
-    Ce lien ne contient pas votre code personnel. Demandez votre lien à Julien Rischard.
+    Ce lien ne contient pas votre code personnel. Demandez votre lien à la personne qui vous l'a transmis
+    (Julien Rischard pour les médecins, Frédérique ou Sybille pour l'équipe paramédicale).
   </div>
   <div id="contenu" class="hide">
     <div class="card" id="ios">
@@ -71,9 +72,12 @@
 
   // Le code personnel est normalement après le « # » (jamais envoyé au serveur). Lecture tolérante :
   // l'adresse peut avoir été réencodée (« %23 » au lieu de « # ») ou porter les paramètres après « ? ».
+  // Codes acceptés (24/11/2026) : 2 à 24 lettres ou chiffres. Les médecins ont un code de 2 à 4 lettres (JR, MBK…),
+  // les paramédicaux un code de 5 caractères ou plus tiré de leur prénom (CECILEB…), que l'ancienne règle
+  // « 2 à 4 lettres » refusait (« Lien incomplet »).
   function lireParams() {
     var s = location.href; try { s = decodeURIComponent(s); } catch (e) {}
-    var u = s.match(/[#?&]u=([A-Za-z]{2,4})(?=&|$)/), k = s.match(/[#?&]k=([A-Za-z0-9]+)/), g = /[#?&]go=1/.test(s);
+    var u = s.match(/[#?&]u=([A-Za-z0-9]{2,24})(?=&|$)/), k = s.match(/[#?&]k=([A-Za-z0-9]+)/), g = /[#?&]go=1/.test(s);
     return { u: u ? u[1].toUpperCase() : '', k: k ? k[1] : '', go: g ? '1' : '' };
   }
   var p = lireParams();
